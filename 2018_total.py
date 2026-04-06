@@ -21,8 +21,13 @@ plt.rcParams["axes.unicode_minus"] = False
 
 @st.cache_data
 def load_faf() -> pd.DataFrame:
-    url = "https://github.com/bnn05195/data-science/releases/download/v1.0/FAF5.parquet"
-    return pd.read_parquet(url)
+    return read_faf5_parquet()
+
+
+@st.cache_data
+def load_cpi() -> pd.DataFrame:
+    return pd.read_csv("data/CPIAUCSL_PC1.csv")
+
 
 @st.cache_data
 def load_sctg2_description() -> dict:
@@ -41,6 +46,7 @@ def load_sctg2_description() -> dict:
 
 # 1. 데이터 불러오기
 faf_raw = load_faf()
+cpi_raw = load_cpi()
 SCTG2_DESC_MAP = load_sctg2_description()
 
 # 2. 결측치 제거 + 트럭 필터링

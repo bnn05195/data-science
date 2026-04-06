@@ -4,7 +4,6 @@ import seaborn as sns
 import streamlit as st
 import platform
 
-from faf_parquet import filter_truck, read_faf5_parquet
 
 # 운영체제에 따라 폰트 다르게 설정하기
 os_name = platform.system()
@@ -37,7 +36,9 @@ def load_sctg2_description() -> dict:
         return dict(zip(meta["sctg2"].astype(int), meta["description"].astype(str)))
     except Exception:
         return {}
-
+def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
+    """트럭만 (dms_mode == 1). dms_mode 는 int64."""
+    return df.loc[df["dms_mode"] == 1].copy()
 
 # 1. 데이터 불러오기
 faf_raw = load_faf()

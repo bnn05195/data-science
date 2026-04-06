@@ -4,8 +4,6 @@ import numpy as np
 import streamlit as st
 import platform
 
-from faf_parquet import filter_truck, read_faf5_parquet
-
 # 운영체제에 따라 폰트 다르게 설정하기
 os_name = platform.system()
 if os_name == "Windows":
@@ -21,7 +19,9 @@ plt.rcParams["axes.unicode_minus"] = False
 
 @st.cache_data
 def load_faf() -> pd.DataFrame:
-    return read_faf5_parquet()
+    url = "https://github.com/bnn05195/data-science/releases/download/v1.0/FAF5.parquet"
+    return pd.read_parquet(url)
+
 
 
 @st.cache_data
@@ -43,7 +43,9 @@ def load_sctg2_description() -> dict:
     except Exception:
         return {}
 
-
+def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
+    """트럭만 (dms_mode == 1). dms_mode 는 int64."""
+    return df.loc[df["dms_mode"] == 1].copy()
 # 1. 데이터 불러오기
 faf_raw = load_faf()
 cpi_raw = load_cpi()
