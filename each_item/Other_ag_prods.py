@@ -8,7 +8,7 @@ import streamlit as st
 import platform
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from faf_parquet import filter_truck, read_faf5_parquet
+
 
 # 운영체제에 따라 폰트 다르게 설정하기
 os_name = platform.system()
@@ -25,12 +25,58 @@ plt.rcParams["axes.unicode_minus"] = False
 
 @st.cache_data
 def load_faf() -> pd.DataFrame:
-    return read_faf5_parquet()
+    url = "https://github.com/bnn05195/data-science/releases/download/v1.0/FAF5.parquet"
+    return pd.read_parquet(url)
 
 
 SCTG2_CODE = 3
 COMMODITY_EN = 'Other ag prods.'
+FAF5_COLUMNS = [
+    "fr_orig",
+    "dms_orig",
+    "dms_dest",
+    "fr_dest",
+    "fr_inmode",
+    "dms_mode",
+    "fr_outmode",
+    "sctg2",
+    "trade_type",
+    "dist_band",
+    "tons_2018",
+    "tons_2019",
+    "tons_2020",
+    "tons_2021",
+    "tons_2022",
+    "tons_2023",
+    "tons_2024",
+    "value_2018",
+    "value_2019",
+    "value_2020",
+    "value_2021",
+    "value_2022",
+    "value_2023",
+    "value_2024",
+    "current_value_2018",
+    "current_value_2019",
+    "current_value_2020",
+    "current_value_2021",
+    "current_value_2022",
+    "current_value_2023",
+    "current_value_2024",
+    "tmiles_2018",
+    "tmiles_2019",
+    "tmiles_2020",
+    "tmiles_2021",
+    "tmiles_2022",
+    "tmiles_2023",
+    "tmiles_2024",
+]
 
+
+
+def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
+    """트럭만 (dms_mode == 1). dms_mode 는 int64."""
+    return df.loc[df["dms_mode"] == 1].copy()
 # 1. 데이터 불러오기
 faf_raw = load_faf()
 
@@ -101,9 +147,6 @@ st.write("부연 설명")
 st.write("")
 st.write(
     f"- 품목: **{COMMODITY_EN}** (`sctg2={SCTG2_CODE}`), 트럭(`faf_parquet.filter_truck` → `dms_mode==1`)만 사용합니다."
-)
-st.write(
-    "- 데이터: GitHub `FAF5.parquet` 또는 로컬 `data/FAF5.parquet` (`faf_parquet.read_faf5_parquet`). 실측 행 2,494,901 / 열 38."
 )
 st.write(
     "- 결측치 제거: `dms_mode`, `sctg2`, `tons_2018`~`tons_2024` 중 하나라도 NaN이면 행을 제외한 뒤 트럭만 골라 해당 품목을 집계합니다."
