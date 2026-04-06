@@ -28,7 +28,7 @@ def load_sctg2_description() -> dict:
     try:
         meta = pd.read_excel(
             "data/FAF5_metadata.xlsx",
-            sheet_name="Commodity (SCTG2)",
+            sheet_name="Commodity (SCTG2)", 
         )
         meta = meta.rename(columns={"Numeric Label": "sctg2", "Description": "description"})
         meta["sctg2"] = pd.to_numeric(meta["sctg2"], errors="coerce").astype("Int64")

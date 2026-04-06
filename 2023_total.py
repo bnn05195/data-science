@@ -25,7 +25,7 @@ def load_faf() -> pd.DataFrame:
 
 @st.cache_data
 def load_sctg2_description() -> dict:
-    try:
+    try: 
         meta = pd.read_excel(
             "data/FAF5_metadata.xlsx",
             sheet_name="Commodity (SCTG2)",

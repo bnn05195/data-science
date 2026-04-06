@@ -22,7 +22,7 @@ def load_faf() -> pd.DataFrame:
     url = "https://github.com/bnn05195/data-science/releases/download/v1.0/FAF5.parquet"
     return pd.read_parquet(url)
 
-
+ 
 
 @st.cache_data
 def load_cpi() -> pd.DataFrame:

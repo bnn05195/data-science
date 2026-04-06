@@ -45,7 +45,7 @@ faf_raw = load_faf()
 SCTG2_DESC_MAP = load_sctg2_description()
 
 # 2. 결측치 제거 + 트럭 필터링
-required_cols = ["dms_mode", "sctg2", "tons_2019"]
+required_cols = ["dms_mode", "sctg2", "tons_2019"] 
 missing_cols = [c for c in required_cols if c not in faf_raw.columns]
 
 if missing_cols:

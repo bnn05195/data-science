@@ -51,7 +51,7 @@ missing_cols = [c for c in required_cols if c not in faf_raw.columns]
 if missing_cols:
     st.error(f"FAF 데이터에 필요한 컬럼이 없습니다: {missing_cols}")
     st.stop()
-
+ 
 clean_df = faf_raw.dropna(subset=required_cols)
 truck_df = filter_truck(clean_df)
 

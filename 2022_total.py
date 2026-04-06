@@ -28,7 +28,7 @@ def load_faf() -> pd.DataFrame:
 def load_sctg2_description() -> dict:
     try:
         meta = pd.read_excel(
-            "data/FAF5_metadata.xlsx",
+            "data/FAF5_metadata.xlsx", 
             sheet_name="Commodity (SCTG2)",
         )
         meta = meta.rename(columns={"Numeric Label": "sctg2", "Description": "description"})

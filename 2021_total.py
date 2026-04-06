@@ -39,10 +39,10 @@ def load_sctg2_description() -> dict:
 def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
     """트럭만 (dms_mode == 1). dms_mode 는 int64."""
     return df.loc[df["dms_mode"] == 1].copy()
-
+ 
 # 1. 데이터 불러오기
 faf_raw = load_faf()
-SCTG2_DESC_MAP = load_sctg2_description()
+SCTG2_DESC_MAP = load_sctg2_description() 
 
 # 2. 결측치 제거 + 트럭 필터링
 required_cols = ["dms_mode", "sctg2", "tons_2021"]
