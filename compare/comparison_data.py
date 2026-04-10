@@ -26,7 +26,7 @@ def load_faf() -> pd.DataFrame:
 
 @st.cache_data
 def load_cpi() -> pd.DataFrame:
-    return pd.read_csv("data/CPIAUCSL_PC1.csv")
+    return pd.read_csv("../data/CPIAUCSL_PC1.csv")
 
 
 @st.cache_data
