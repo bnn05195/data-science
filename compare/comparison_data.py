@@ -4,6 +4,16 @@ import numpy as np
 import streamlit as st
 import platform
 
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+        }
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 # 운영체제에 따라 폰트 다르게 설정하기
 os_name = platform.system()
 if os_name == "Windows":

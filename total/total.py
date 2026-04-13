@@ -4,6 +4,16 @@ import seaborn as sns
 import streamlit as st
 import platform
 
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+        }
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 
 # 운영체제에 따라 폰트 다르게 설정하기
 os_name = platform.system()
@@ -25,17 +35,21 @@ def load_faf() -> pd.DataFrame:
 
 @st.cache_data
 def load_sctg2_description() -> dict:
-    try: 
-        meta = pd.read_excel(
-            "data/FAF5_metadata.xlsx",
-            sheet_name="Commodity (SCTG2)",
-        )
-        meta = meta.rename(columns={"Numeric Label": "sctg2", "Description": "description"})
-        meta["sctg2"] = pd.to_numeric(meta["sctg2"], errors="coerce").astype("Int64")
-        meta = meta.dropna(subset=["sctg2", "description"])
-        return dict(zip(meta["sctg2"].astype(int), meta["description"].astype(str)))
-    except Exception:
-        return {}
+    # 엑셀 파일이 없어도 무조건 이름이 뜨도록 하드코딩된 딕셔너리로 대체
+    return {
+        1: 'Live animals/fish', 2: 'Cereal grains', 3: 'Other ag prods.', 4: 'Animal feed',
+        5: 'Meat/seafood', 6: 'Milled grain prods.', 7: 'Other foodstuffs', 8: 'Alcoholic beverages',
+        9: 'Tobacco prods.', 10: 'Monumental or building stone', 11: 'Natural sands', 12: 'Gravel and crushed stone',
+        13: 'Nonmetallic minerals', 14: 'Metallic ores', 15: 'Coal', 16: 'Crude petroleum',
+        17: 'Gasoline', 18: 'Fuel oils', 19: 'Coal and hydrocarbon products', 20: 'Basic chemicals',
+        21: 'Pharmaceuticals', 22: 'Fertilizers', 23: 'Chemical prods.', 24: 'Plastics/rubber',
+        25: 'Logs', 26: 'Wood prods.', 27: 'Newsprint/paper', 28: 'Paper articles',
+        29: 'Printed prods.', 30: 'Textiles/leather', 31: 'Nonmetal min. prods.', 32: 'Base metals',
+        33: 'Articles of base metal', 34: 'Machinery', 35: 'Electronics', 36: 'Motor vehicles',
+        37: 'Transport equip.', 38: 'Precision instruments', 39: 'Furniture', 40: 'Misc. mfg. prods.',
+        41: 'Waste/scrap', 43: 'Mixed freight', 99: 'Unknown'
+    }
+
 def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
     """트럭만 (dms_mode == 1). dms_mode 는 int64."""
     return df.loc[df["dms_mode"] == 1].copy()
@@ -44,8 +58,14 @@ def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
 faf_raw = load_faf()
 SCTG2_DESC_MAP = load_sctg2_description()
 
+year_cols = [c for c in faf_raw.columns if c.startswith("tons_")]
+available_years = sorted([c.replace("tons_", "") for c in year_cols])
+
+selected_year = st.selectbox("연도 선택", options=available_years, index=0)
+target_year_col = f"tons_{selected_year}"
+
 # 2. 결측치 제거 + 트럭 필터링
-required_cols = ["dms_mode", "sctg2", "tons_2023"]
+required_cols = ["dms_mode", "sctg2", target_year_col]
 missing_cols = [c for c in required_cols if c not in faf_raw.columns]
 
 if missing_cols:
@@ -55,14 +75,7 @@ if missing_cols:
 clean_df = faf_raw.dropna(subset=required_cols)
 truck_df = filter_truck(clean_df)
 
-# 정제 전/후 데이터 개수 비교
-col1, col2, col3 = st.columns(3)
-col1.metric(label="정제 전 (원본) 행 수", value=f"{len(faf_raw):,}")
-col3.metric(label="트럭 필터링 후 행 수", value=f"{len(truck_df):,}")
-
-# 3. 2023년 트럭 운송 품목 전체 가로 막대 그래프
-target_year_col = "tons_2023"
-
+# 3. 선택된 연도 트럭 운송 품목 전체 가로 막대 그래프
 top10_truck = (
     truck_df.groupby("sctg2", as_index=True)[target_year_col]
     .sum()
@@ -87,7 +100,7 @@ sns.barplot(
     ax=ax,
 )
 
-# 막대 끝부분에 값(tons_2023) 표시
+# 막대 끝부분에 값 표시
 vals = top10_df[target_year_col].values
 for i, patch in enumerate(ax.patches):
     if i >= len(vals):
@@ -109,8 +122,8 @@ for i, patch in enumerate(ax.patches):
     )
 
 ax.set_xlabel("물동량 (천 톤, thousand tons)", fontsize=14)
-ax.set_ylabel("품목(설명/코드)", fontsize=14)
-ax.set_title("2023년 트럭 운송 품목별 물동량 (전체)", fontweight="bold", fontsize=16)
+ax.set_ylabel("품목 이름 (Commodity)", fontsize=14)
+ax.set_title(f"{selected_year}년 트럭 운송 품목별 물동량 (전체)", fontweight="bold", fontsize=16)
 ax.tick_params(axis="y", labelsize=11)
 ax.tick_params(axis="x", labelsize=12)
 
@@ -125,11 +138,3 @@ ax.set_xlim(cur_xlim[0], cur_xlim[1] * 1.08)
 
 st.pyplot(fig, use_container_width=True)
 
-# 항목 부연 설명
-st.write("")
-st.write("부연 설명")
-st.write("")
-st.write("- `label`: 품목 코드(`sctg2`)에 해당하는 품목 설명(없으면 코드 그대로 표시). 막대의 y축입니다.")
-st.write("- `tons_2023`: 2023년 트럭 운송 물동량 합계. 단위는 `thousand tons`(천 톤)이며 막대의 x축입니다.")
-st.write("- 트럭 추출: `faf_parquet.filter_truck` → `dms_mode == 1`.")
-st.write("- 결측치 제거: `dms_mode`, `sctg2`, 해당 연도 `tons_연도` 중 하나라도 NaN이면 해당 행을 제외한 뒤 트럭만 필터링합니다.")

@@ -1,14 +1,21 @@
 import sys
 from pathlib import Path
-
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 import platform
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+        }
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
 
 # 운영체제에 따라 폰트 다르게 설정하기
 os_name = platform.system()
@@ -29,8 +36,32 @@ def load_faf() -> pd.DataFrame:
     return pd.read_parquet(url)
 
 
-SCTG2_CODE = 29
-COMMODITY_EN = 'Printed prods.'
+SCTG2_MAP = {
+    1: 'Live animals/fish', 2: 'Cereal grains', 3: 'Other ag prods.', 4: 'Animal feed',
+    5: 'Meat/seafood', 6: 'Milled grain prods.', 7: 'Other foodstuffs', 8: 'Alcoholic beverages',
+    9: 'Tobacco prods.', 10: 'Monumental or building stone', 11: 'Natural sands', 12: 'Gravel and crushed stone',
+    13: 'Nonmetallic minerals', 14: 'Metallic ores', 15: 'Coal', 16: 'Crude petroleum',
+    17: 'Gasoline', 18: 'Fuel oils', 19: 'Coal and hydrocarbon products', 20: 'Basic chemicals',
+    21: 'Pharmaceuticals', 22: 'Fertilizers', 23: 'Chemical prods.', 24: 'Plastics/rubber',
+    25: 'Logs', 26: 'Wood prods.', 27: 'Newsprint/paper', 28: 'Paper articles',
+    29: 'Printed prods.', 30: 'Textiles/leather', 31: 'Nonmetal min. prods.', 32: 'Base metals',
+    33: 'Articles of base metal', 34: 'Machinery', 35: 'Electronics', 36: 'Motor vehicles',
+    37: 'Transport equip.', 38: 'Precision instruments', 39: 'Furniture', 40: 'Misc. mfg. prods.',
+    41: 'Waste/scrap', 43: 'Mixed freight', 99: 'Unknown'
+}
+
+# 셀렉트박스로 품목 선택
+selected_commodity = st.selectbox(
+    "품목 선택",
+    options=list(SCTG2_MAP.values()),
+    index=0
+)
+
+# 선택된 품목의 이름으로 딕셔너리에서 코드를 역추적하여 기존 변수에 할당
+SCTG2_CODE = [code for code, name in SCTG2_MAP.items() if name == selected_commodity][0]
+COMMODITY_EN = selected_commodity
+
+
 FAF5_COLUMNS = [
     "fr_orig",
     "dms_orig",
@@ -73,10 +104,10 @@ FAF5_COLUMNS = [
 ]
 
 
-
 def filter_truck(df: pd.DataFrame) -> pd.DataFrame:
     """트럭만 (dms_mode == 1). dms_mode 는 int64."""
     return df.loc[df["dms_mode"] == 1].copy()
+
 # 1. 데이터 불러오기
 faf_raw = load_faf()
 
@@ -141,10 +172,6 @@ ax.legend(loc="best")
 fig.tight_layout()
 st.pyplot(fig, use_container_width=True)
 
-# 부연 설명
-st.write("")
-st.write("부연 설명")
-st.write("")
 st.write(
     f"- 품목: **{COMMODITY_EN}** (`sctg2={SCTG2_CODE}`), 트럭(`faf_parquet.filter_truck` → `dms_mode==1`)만 사용합니다."
 )
